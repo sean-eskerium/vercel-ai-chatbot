@@ -1,4 +1,4 @@
-import { put } from '@vercel/blob';
+import { uploadAttachment } from '@/lib/storage';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
@@ -30,13 +30,13 @@ export async function POST(request: Request) {
 
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as Blob;
+    const rawFile = formData.get('file');
 
-    if (!file) {
-      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+    if (!rawFile || !(rawFile instanceof Blob)) {
+      return NextResponse.json({ error: 'No file uploaded or invalid file type' }, { status: 400 });
     }
 
-    const validatedFile = FileSchema.safeParse({ file });
+    const validatedFile = FileSchema.safeParse({ file: rawFile });
 
     if (!validatedFile.success) {
       const errorMessage = validatedFile.error.errors
@@ -46,16 +46,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
 
-    // Get filename from formData since Blob doesn't have name property
-    const filename = (formData.get('file') as File).name;
-    const fileBuffer = await file.arrayBuffer();
+    let filename = '';
+    if (rawFile instanceof File) {
+      filename = rawFile.name;
+    } else {
+      filename = `upload-${Date.now()}.bin`;
+    }
 
     try {
-      const data = await put(`${filename}`, fileBuffer, {
-        access: 'public',
-      });
-
-      return NextResponse.json(data);
+      const publicUrl = await uploadAttachment(rawFile, filename);
+      return NextResponse.json({ publicUrl });
     } catch (error) {
       return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
     }
