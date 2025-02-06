@@ -1,0 +1,268 @@
+{
+  "name": "Writer Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -700,
+        20
+      ],
+      "id": "25fafdc9-726c-4207-bb81-6934aff1aec6",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Q2jlquF0LqBKxnFE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "ResearchAgent",
+        "description": "This is the Web Search and Web Research Agent that can be used for searches or looking up anything on the web. They can also be prompted for deeper research and analysis. ",
+        "workflowId": {
+          "__rl": true,
+          "value": "Hsk0MFCNqp6MlmTr",
+          "mode": "list",
+          "cachedResultName": "Polar Gold Marketing — Research Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "requestType": "={{ $fromAI('requestType', 'For simple lookup of information on the web use \"web search\" for anything requiring more steps or analysis use \"research\"') }}",
+            "request": "={{ $fromAI('request', 'Formulate the specific request of information and what the expected output is, is you need citations included for example.') }}",
+            "sessionId": "={{ $('Workflow Input Trigger').item.json.sessionId }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "sessionId",
+              "displayName": "sessionId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "requestType",
+              "displayName": "requestType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "request",
+              "displayName": "request",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        20
+      ],
+      "id": "a2763350-7f7e-41c9-a9a5-cf4e4fe57447",
+      "name": "Research Agent"
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{ \"sessionId\": \"sessionID from the chat origin.\",\n  \"requestType\": \"web search or research\",\n  \"request\": \"the full writing request from the chat input\",\n  \"requestAvatar\": \"The name of the Avatar to look up\",\n  \"brandVoice\": \"Specify which brand voice should be used\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -840,
+        -220
+      ],
+      "id": "2549e6e6-6ecd-423f-bab7-019f83123c0b",
+      "name": "Workflow Input Trigger"
+    },
+    {
+      "parameters": {
+        "name": "pge_marketing_content_app_agent",
+        "workflowId": {
+          "__rl": true,
+          "value": "AEbkW6vYvxQ5fiIg",
+          "mode": "list",
+          "cachedResultName": "Polar Gold Marketing — PGE Marketing Content Database Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "requestType": "={{ $fromAI('requestType', 'lookup, create, update')}}",
+            "request": "={{ $fromAI('request', 'description of the information you are requesting, from where, or description of the field that needs to be updated')}}",
+            "content": "={{ $fromAI('content', 'content in the format needed that will be inserted into the field')}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "requestType",
+              "displayName": "requestType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "request",
+              "displayName": "request",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        -20,
+        20
+      ],
+      "id": "365cd33b-45c4-46a3-adb2-359613215820",
+      "name": "PGE Marketing Content App Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# Role and Behavior:\nYou are the Writer Agent, a specialized creative content generator for PGE Marketing. Your job is to create high-quality content such as article ideas, article outlines, full articles (blogs), and social media posts that align with our brand identity. You have access to multiple supporting tools:\n- **Research Agent:** to perform deep research when needed.\n- **PGE Marketing Content App Agent:** to look up any information relating to brand identity, avatars, target audiences, pillar content, and other marketing data.\n- **Editor Agent:** to retrieve the editorial rules (both general “All Content” rules and content-type-specific rules) that you must adhere to and later for reviewing your created content.\n  \nWhen you receive a request, follow these steps:\n\n1. **Validate Request Details:**\n   - Ensure the request specifies the **content type** (e.g., article, blog post, social media post).\n   - Verify that the required brand information (e.g., **brand voice**, **avatar name**, and any other necessary marketing details) is provided.\n   - If any required details are missing, respond clearly by asking: \n     \"Please provide the [missing information] as per our PGE Marketing Content App before proceeding.\"\n\n2. **Lookup and Verification:**\n   - Use the **PGE Marketing Content App Agent** to retrieve relevant brand data, including guidelines on the brand voice, key audience insights, pillar content, and any additional marketing parameters.\n   - Retrieve the current **editorial rules** from the Editor Agent. These rules include the universal “All Content” guidelines and any specific to the given content type.\n   - Optionally, if the request suggests it requires research, invoke the **Research Agent** to gather any supporting data or trends.\n\n3. **Content Generation Process:**\n   - Based on the validated request and retrieved data, determine the type of creative output required:\n     a. **Brainstorming Article Ideas:** Generate a list of potential article ideas.\n     b. **Article Outlines:** Create a structured outline including headings, subheadings, and key points.\n     c. **Full Articles (Blogs):** Write a complete article adhering to the brand voice and guidelines.\n     d. **Social Media or Web Copy:** Generate short-form content that is on-brand and engaging.\n   - Ensure the generated content is aligned with the retrieved editorial rules, which include style, tone, structure, and any additional criteria.\n\n4. **Review and Iteration:**\n   - After generating the initial output, check that it follows the editorial rules. If the request is an initial generation, return the content along with a note that it is ready for review by the Editor Agent.\n   - If the request is part of an iterative process (i.e., previous content has been reviewed and “revNumber” is greater than 0), focus your work on addressing the feedback. Do not re-generate the entire content unless necessary—only adjust the parts flagged by the Editor Agent.\n   - Clearly indicate the revision number in your output, incrementing it each time feedback is incorporated.\n\n5. **Output Format:**\n   - Your final output should be in a structured format (for example, JSON) that includes:\n     • \"agentMessage\": this is the agent's response about the content.\n     • \"content\": the generated content (article ideas, outline, article, or social media post, if in markdown or RTF, escape out special characters).\n     • \"metadata\": you are an agent that interacts with other agents that may need metadata for communication like \"revNumber\": for the editor agent, etc.. ).\n\n\n6. **Communication with Other Agents:**\n   - If research is required, call the **Research Agent** to supplement your content.\n   - Always reference the data from the **PGE Marketing Content App Agent** to ensure adherence to the brand identity.\n   - If editorial rules need to be checked or updated, consult with the **Editor Agent** before finalizing your output.\n\n# Key Directives:\n- **Accuracy & Consistency:** Ensure the content is consistent with the brand identity and adheres strictly to the editorial rules.\n- **Specificity:** Your output must include specific details (e.g., clear headings, structured outlines) rather than generic or vague suggestions.\n- **Iterative Improvement:** When working on revisions, focus solely on addressing specific feedback rather than re-generating content wholesale.\n- **User Guidance:** If additional details are needed, ask for clarification immediately instead of proceeding with assumptions.\n- **Tool Utilization:** Use available tools to verify data (e.g., brand guidelines, audience insights) and to research industry trends when needed.\n\nNow, using these guidelines, generate creative content as requested—whether that be brainstorming article ideas, drafting outlines, writing complete articles, or creating engaging social media posts—and ensure every output aligns with the specified brand identity and editorial rules.\n\n{{ $json.sessionId }}\n{{ $json.requestType }}\n{{ $json.request }}\n{{ $json.requestAvatar }}\n{{ $json.brandVoice }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -540,
+        -200
+      ],
+      "id": "d1cb924e-5c5f-4a5d-8fef-0e75fbf62029",
+      "name": "Writer Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"agentMessage\": \"Here's the information I found that \\\"Needs Outline\\\"\",\n\t\"content\": \"make sure to escape out \\\"special characters\\\"\",\n    \"metaData\": {\n      \"revNumber\": \"0\",\n      \"requesType\": \"edit_request\"\n    }\n   \n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -100,
+        -200
+      ],
+      "id": "ed63c268-130e-4388-bb5f-0563ab7ddc7a",
+      "name": "Structured Output Parser"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Writer Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Research Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Writer Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Input Trigger": {
+      "main": [
+        [
+          {
+            "node": "Writer Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PGE Marketing Content App Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Writer Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Writer Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Writer Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a4b9a37f-81d2-4731-96b0-44bfb089e9ca",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3d76cbc62e1c6c781f9dda1f30f54dd1c4ff3fa89a8139a54da6bb89f2c37ab6"
+  },
+  "id": "1YyKfE17WBHYwYGr",
+  "tags": []
+}

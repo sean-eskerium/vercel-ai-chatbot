@@ -1,0 +1,178 @@
+{
+  "name": "Editor Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "jsonExample"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        -100
+      ],
+      "id": "d798e7e2-ff74-4f73-b08f-b303360f554b",
+      "name": "Workflow Input Trigger"
+    },
+    {
+      "parameters": {
+        "agent": "planAndExecuteAgent",
+        "promptType": "define",
+        "text": "=You are an expert editor for creative and marketing content. You receive JSON input that contains:\n  • \"contentType\": the type of content (e.g., \"article\", \"LinkedIn post\", \"Instagram post\", etc.),\n  • \"brandVoice\": the tone and style the content should adhere to,\n  • \"content\": the document text to be reviewed,\n  • \"revNumber\": the current revision number (0 for the first review).\n\nYour job is to:\n1. Review the \"content\" according to the rules and criteria for the given \"contentType\" from our Airbase App.\n2. Verify that the content conforms to the specified \"brandVoice\" and follows the editorial guidelines.\n3. Provide detailed, structured feedback that explains any issues, discrepancies, or areas for improvement.\n4. Return the original content along with the feedback, and include an incremented revision number (i.e., if \"revNumber\" is 0, return 1; if it is 1, return 2, etc.).\n5. If this is a subsequent revision (revNumber > 0), be sure to acknowledge that feedback was already provided and only add further specific recommendations if remaining issues are found.\n6. Use any available web search or research tools if necessary to verify facts or standards.\n7. Output a JSON object with the following structure:\n    {\n      \"contentType\": \"<input contentType>\",\n      \"brandVoice\": \"<input brandVoice>\",\n      \"content\": \"<original unedited content>\",\n      \"feedback\": \"<detailed feedback for revisions>\",\n      \"revNumber\": <incremented revision number>\n    }\n\nImportant: Do not modify the original content. Your role is solely to provide clear, actionable feedback that the writer agent can use to make revisions. Avoid providing overly general comments; be specific with the areas that need improvement based on the rules provided by the Airbase App. Do not generate additional edits unless you are certain the guidelines are not met.\n\nWhen you receive a request, first confirm that the JSON includes all required fields. If any field (such as \"brandVoice\" or \"contentType\") is missing, respond with a clear message asking for the missing information and do not proceed further until all required data is provided.\n\nRemember:\n- Your feedback must be structured, specific, and tied directly to the criteria for the content type.\n- Do not enter an endless loop of revisions; if \"revNumber\" indicates previous feedback, simply build on that feedback with further specific recommendations.\n- Use your available research tools if needed to confirm standards or verify details.\n\nNow, review the following JSON input and provide your response according to these instructions.\n",
+        "options": {
+          "humanMessageTemplate": "Previous steps: {previous_steps}\n\nCurrent objective: {current_step}\n\n{agent_scratchpad}\n\nYou may extract and combine relevant data from your previous steps when responding to me."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -100,
+        -100
+      ],
+      "id": "29459553-8d26-4ec0-a2a1-d6c13c80b062",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -160,
+        120
+      ],
+      "id": "a8921306-d4dc-4ca0-bbd1-8c395c606499",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Q2jlquF0LqBKxnFE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appNRPMSY0XKieJxR",
+          "mode": "list",
+          "cachedResultName": "PGE Marketing Content App",
+          "cachedResultUrl": "https://airtable.com/appNRPMSY0XKieJxR"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbltfBClYZNZfe9mC",
+          "mode": "list",
+          "cachedResultName": "Editor Rules",
+          "cachedResultUrl": "https://airtable.com/appNRPMSY0XKieJxR/tbltfBClYZNZfe9mC"
+        },
+        "options": {
+          "downloadFields": []
+        }
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        200,
+        120
+      ],
+      "id": "6bd25218-e001-4492-b5db-511551582e2c",
+      "name": "Editor Rules",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "RXmNNc7Xuo1AJHDB",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "gl": "us",
+          "google_domain": "google.com",
+          "hl": "en"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        40,
+        120
+      ],
+      "id": "c712622d-9f33-4e01-b06f-696c51612bc1",
+      "name": "SerpAPI",
+      "credentials": {
+        "serpApi": {
+          "id": "0He8GsLBBqdokfYX",
+          "name": "SerpAPI account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Workflow Input Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Editor Rules": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpAPI": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "996106c9-1cba-4749-abac-faf7f24af305",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3d76cbc62e1c6c781f9dda1f30f54dd1c4ff3fa89a8139a54da6bb89f2c37ab6"
+  },
+  "id": "4zjE2pXI7PGBGkgB",
+  "tags": []
+}

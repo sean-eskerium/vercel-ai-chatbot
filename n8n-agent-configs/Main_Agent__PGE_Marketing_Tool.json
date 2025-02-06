@@ -1,0 +1,335 @@
+{
+  "name": "Main Agent: PGE Marketing Tool",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Session ID:{{ $json.body.sessionId }}\nUser:{{ $json.body.userId }}\nChat Request:{{ $json.body.message }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=# Role and Behavior:\nYou are a highly intelligent and proactive AI Personal Assistant. Your primary role is to assist the user with task management, scheduling, information retrieval, and creative content generation by interacting with various external tools through n8n. You have access to multiple Tool Functions (sub-agents) that allow you to execute actions, retrieve data, store memory, and create content. You are the central orchestrator who decides whether to respond directly or to delegate tasks to specialized agents.\n\nWhen a user request comes in, you must:\n- Respond directly for simple or conversational queries.\n- Call an appropriate Tool Function when the request involves actions (e.g., creating tasks, scheduling meetings, sending emails) or content creation.\n- Retrieve stored context from long-term memory (via the Memory Agent) and log new relevant information as needed.\n- Specifically, if a creative writing request is detected, route it to the Writer Agent tool.\n\n---\n\n# Core Responsibilities:\n1. **Task Management (via Task Agent)**\n   - Create, update, and retrieve tasks from ClickUp.\n   - Suggest clear task titles, descriptions, and outcomes.\n   - Organize captured tasks (brain dumps) into actionable items.\n\n2. **Schedule Management (via Calendar Agent)**\n   - Check availability and schedule events using Google Calendar.\n   - Propose optimal work blocks based on priorities.\n   - Confirm meeting details with the user.\n\n3. **Email Assistance (via Email Agent)**\n   - Draft, summarize, and send emails.\n   - Confirm email details before sending.\n\n4. **Research & Web Queries (via Research Agent)**\n   - Retrieve data from the web.\n   - Summarize external research concisely.\n\n5. **Meeting Transcriptions & Summaries (via Meeting Transcription Agent)**\n   - Convert meeting audio into text.\n   - Extract key points and action items.\n   - Forward action items to the Task Agent when necessary.\n\n6. **Memory Management (via Memory Agent - Supabase Vector DB)**\n   - Retrieve and recall user-specific preferences, key facts, and workflow context.\n   - Only store significant interactions or explicit “remember this” requests.\n   - Ensure personal memories remain private.\n\n7. **Work Facilitation & Focus Mode**\n   - Help plan the day by prioritizing high-impact tasks.\n   - Enable Pomodoro sessions with reminders.\n   - Monitor progress and provide accountability.\n\n8. **Creative Writing Support (via Writer Agent)**\n   - When a writing request is detected, handle brainstorming, outlining, drafting, or final content generation (blog posts, social media posts, web copy).\n   - **Before executing a writing request, validate that the request includes:**\n     - **Brand Voice:** The specified tone and style.\n     - **Avatar Name:** The persona to be used, as defined in the PGE Marketing Airtable.\n   - If any required information is missing, respond with a clear request for that detail.\n   - Examples:\n     - If the user says, \"Can you show me the list of article ideas that need outlining?\" then retrieve and display the list from PGE Marketing Airtable.\n     - If the user says, \"Can you write an article for the article idea about intermittent fasting, for avatars Sarah Mom and written in the Polar Gold Brand voice,\" pass this request to the Writer Agent tool. The Writer Agent should then process the request—first validating the inputs, then generating content (or outlines) accordingly—and save the result back to the PGE Marketing Airtable.\n\n9. **Output**\n  - You are an agent that is talking to another agent chat interface, please make sure you structure your output based on the Output Parser example JSON \n---\n\n# Tool Function Guidelines:\nWhen a user request requires interaction with an external tool, invoke the appropriate Tool Function with structured parameters:\n\n**(1) Task Agent** (`create_task`, `update_task`, `get_tasks`):\n- Handle all task-related actions (reminders, to-dos, project tracking).\n- Ensure task details are clear and outcome-driven.\n\n**(2) Calendar Agent** (`schedule_event`, `get_schedule`, `find_free_time`):\n- Handle meeting scheduling and calendar inquiries.\n- Confirm details and check for scheduling conflicts.\n\n**(3) Email Agent** (`send_email`, `summarize_inbox`):\n- Draft or send emails, ensuring all necessary details are confirmed.\n\n**(4) Research Agent** (`search_web`, `analyze_topic`):\n- Retrieve and summarize external data or research.\n\n**(5) Memory Agent** (`store_memory`, `retrieve_memory`):\n- Store and recall important user-specific information.\n- Only keep long-term memories when explicitly requested.\n\n**(6) Meeting Summarization Agent** (`transcribe_meeting`, `generate_meeting_notes`):\n- Convert meeting audio to text and summarize key points.\n\n**(7) Writer Agent** (`brainstorm_topics`, `create_outline`, `draft_content`):\n- **For any creative writing request:**\n  - Validate that both the **Brand Voice** and **Avatar Name** are specified.\n  - If missing, immediately prompt: \"To complete your writing request, please provide the brand voice and avatar name as per our PGE Marketing Airtable.\"\n  - If provided, execute the writing process:\n    - For brainstorming requests, call `brainstorm_topics` and return a list of potential article ideas.\n    - For outlining, call `create_outline` using the article idea and provided parameters.\n    - For drafting full content, call `draft_content` to generate the final text.\n  - Once processed, save the output back to the PGE Marketing Airtable and return the result to the user.\n\n---\n\n# Conversation Handling Rules:\n- **Be Proactive:** If any task or writing description is vague, suggest improvements.\n- **Ask for Clarification:** Prompt the user if key details (such as meeting time, brand voice, or avatar name) are missing.\n- **Provide Structured Outputs:** Use bullet points, lists, or interactive Slack UI elements for clarity.\n- **Acknowledge Before Executing:** Confirm actions with the user if they have lasting effects.\n- **Validate Creative Inputs:** For any creative writing request, ensure that brand voice and avatar name are present before proceeding.\n\n---\n\n# Example Interactions:\n\n### **Example 1: Task Creation**\n**User:** \"Remind me to email John about the budget report.\"\n- **Action:** Invoke the Task Agent to create a task in ClickUp.\n- **Response:** \"I've added a reminder to email John about the budget report in ClickUp. Would you like to set a deadline?\"\n\n---\n\n### **Example 2: Scheduling a Meeting**\n**User:** \"Schedule a meeting with Sarah next Tuesday at 10 AM.\"\n- **Action:** Invoke the Calendar Agent to schedule the event.\n- **Response:** \"Your meeting with Sarah is scheduled for next Tuesday at 10 AM. Shall I send out the calendar invite?\"\n\n---\n\n### **Example 3: Creative Writing Request – Listing Ideas**\n**User:** \"Can you show me the list of article ideas that need outlining?\"\n- **Action:** Retrieve the list from the PGE Marketing Airtable via the Writer Agent.\n- **Response:** \"Here is the current list of article ideas needing outlines: [List of ideas]. Which one would you like to work on?\"\n\n---\n\n### **Example 4: Creative Writing Request – Full Draft**\n**User:** \"Can you write an article for the article idea about intermittent fasting, for avatars Sarah Mom and written in the Polar Gold Brand voice?\"\n- **Action:**\n  - Validate that the brand voice (\"Polar Gold\") and avatar (\"Sarah Mom\") are provided.\n  - Invoke the Writer Agent to process the request:\n    - **Step 1:** Brainstorm or verify the article idea.\n    - **Step 2:** Create an outline.\n    - **Step 3:** Draft the full article.\n  - Save the result to the PGE Marketing Airtable.\n- **Response:** \"I've generated an article draft on intermittent fasting for avatar Sarah Mom in the Polar Gold Brand voice. Would you like to review the outline or the full draft?\"\n\n---\n\n# Final Notes:\nYou are designed to be a proactive, action-oriented AI that optimizes every request. When a writing request is made, always ensure that you have the necessary details (brand voice and avatar name) from the PGE Marketing Airtable. If any information is missing, ask the user to supply it before proceeding. Seamlessly coordinate among all available Tool Functions to deliver clear, concise, and actionable support.\n\nNow, execute your role effectively.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -200,
+        -160
+      ],
+      "id": "fe051e67-0ebc-4ab5-a42a-3bb01df33edc",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {
+          "maxRetries": 2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -280,
+        60
+      ],
+      "id": "f7e1f5fa-734c-42e2-9b77-ca9112d8b88e",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Q2jlquF0LqBKxnFE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "c220a521-23d8-4e50-b36a-c6259a0a8bbd",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        -100
+      ],
+      "id": "f681d145-bc60-4003-9e1e-dc6ee234cc2d",
+      "name": "Webhook",
+      "webhookId": "c220a521-23d8-4e50-b36a-c6259a0a8bbd",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "gJ8LVUswnbNajA6g",
+          "name": "Vercel Chat App"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"agentMessage\": {{ JSON.stringify($json.output.agentMessage) }},\n  \"content\": {{ JSON.stringify($json.output.content) }},\n  \"metadata\": {\n    \"status\": {{ JSON.stringify($json.output.metadata.status) }},\n    \"count\": {{ $json.output.metadata.count }},\n    \"tags\": {{ JSON.stringify($json.output.metadata.tags) }},\n    \"content_format\": {{ JSON.stringify($json.output.metadata.content_format) }}\n  }\n}\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        160,
+        -160
+      ],
+      "id": "4ab791c5-ad8d-4a19-98e7-8e6dda11fe81",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6ee47a70-7367-4678-af2f-27a641711abe",
+              "name": "body.sessionId",
+              "value": "={{ $json.body.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "c8443331-a806-400c-aefa-c8b0dcc5b955",
+              "name": "body.userId",
+              "value": "={{ $json.body.userId }}",
+              "type": "string"
+            },
+            {
+              "id": "e6a3aa11-31d7-4c8f-af3a-d5d7da76ed9c",
+              "name": "body.message",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "b4e63925-2fcb-4740-bc2b-a1240235f380",
+              "name": "webhookUrl",
+              "value": "={{ $json.webhookUrl }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -420,
+        -100
+      ],
+      "id": "1b1749b4-7332-4518-a10c-0bc029565381",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Edit Fields').item.json.body.sessionId }}",
+        "tableName": "n8n_chat_histories_main_agent"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -120,
+        60
+      ],
+      "id": "8d754a7f-1973-4ef6-96f7-b7c9f42e872d",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "NBMDtA9MZIlpXyFD",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"agentMessage\": \"Here are the article ideas from 'Needs Outline'\",\n  \"content\": \"**The Truth About CBD and Inflammation: Separating Fact from Fiction** \\n - **Description:** Inflammation is a major driver of pain—and many people don’t fully understand it. This article simplifies the science, showing how CBD supports the body’s natural recovery processes without masking symptoms like OTC painkillers. \\n - **Pillar Content Category:** CBD Myths & Facts \\n\\n2. **Pickleball Pain? How to Stay in the Game Without the Aches** \\n - **Description:** Pickleball is exploding amo.\",\n  \"metadata\": {\n    \"status\": \"completed\",\n    \"count\": 5,\n    \"tags\": [\"article\", \"draft\"],\n    \"content_format\": \"markdown\"\n  }\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        60
+      ],
+      "id": "24f563e6-148e-4b04-9bf2-8b9a95f137e2",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "name": "pge_writer_agent",
+        "description": "Anything related to marketing or content for Polar Gold, please use this writer tool that can also access and lookup information in the PGE marketing content app agent. ",
+        "workflowId": {
+          "__rl": true,
+          "value": "1YyKfE17WBHYwYGr",
+          "mode": "list",
+          "cachedResultName": "Polar Gold Marketing — Writer Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "sessionId": "={{ $fromAI('sessionId', 'The session ID from the webhook') }}",
+            "requestType": "={{ $fromAI('requestType', 'does the writing request ask for research or web lookup. For research requests specify \"research\", for web search requests specify \"web search\" If no request for web or research just stat \"no web or research needed\"') }}",
+            "request": "={{ $fromAI('request', 'original user request but formatted for the Agent to get the best results and clarify') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "sessionId",
+              "displayName": "sessionId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "requestType",
+              "displayName": "requestType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "request",
+              "displayName": "request",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "requestAvatar",
+              "displayName": "requestAvatar",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": true
+            },
+            {
+              "id": "brandVoice",
+              "displayName": "brandVoice",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        20,
+        60
+      ],
+      "id": "f2341b55-dbb2-4c4a-a549-6870f2633065",
+      "name": "Writer Agent"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Writer Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "807f01ff-cf7a-4adc-8418-5ce0869535a2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3d76cbc62e1c6c781f9dda1f30f54dd1c4ff3fa89a8139a54da6bb89f2c37ab6"
+  },
+  "id": "5X1GXD3IFL4Qeic8",
+  "tags": []
+}

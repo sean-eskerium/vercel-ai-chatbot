@@ -1,0 +1,649 @@
+{
+  "name": "Research Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"searchResults\": {\n    \"title\": \"Top 2 articles about trends in health and wellness\",\n    \"summary\": \"Here are two sources that match your request for trends in health and wellness.\",\n    \"item_1\": {\n      \"title\": \"2025 Health and Fitness Trends for Seniors - Newsweek\",\n      \"summary\": \"Newsweek cites that the top trends in health and wellness for seniors include more widespread adoption of wearable technologies like WHOOP, Apple Watch, and other smart health monitoring devices. Experts predict an increasing focus on personalized nutrition and strength training for longevity.\",\n      \"link\": \"https://newsweek.com/news/2025/senior-wellness-trends/\"\n    },\n    \"item_2\": {\n      \"title\": \"The Future of Wellness: Top Trends for 2025 - Healthline\",\n      \"summary\": \"Healthline explores the biggest wellness trends of 2025, highlighting the rise of AI-powered health coaches, biohacking for better sleep and stress management, and the increasing integration of mental health into traditional healthcare. With a focus on longevity and holistic wellness, these trends are shaping the future of personal health.\",\n      \"link\": \"https://www.healthline.com/health/wellness-trends-2025\"\n    }\n  }\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        20,
+        420
+      ],
+      "id": "2e405892-fe20-43ef-a641-f823c07162db",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"researchRequest\": {\n    \"status\": \"success\",\n    \"summary\": \"The research agent analyzed two topics related to CBD. Below are the findings.\",\n    \"topics\": {\n      \"topic_1\": {\n        \"request\": \"Research if CBDa is effective for post-surgery recovery.\",\n        \"position\": \"Yes, CBDa has been shown to reduce swelling and inflammation by 24% over using typical NSAIDs. This demonstrates its applicability for reducing swelling in recovery from tissue and muscle damage, whether caused by surgery or injury.\",\n        \"position_reasoning\": \"After reviewing the study in PubMed regarding CBDa used post-surgery, it appears to be a well-organized and well-run study from a credible source with a decent sample size. While a larger sample size would provide better data, the current results indicate a significant effect compared to both placebo groups and those prescribed NSAIDs like ibuprofen.\",\n        \"position_sources\": {\n          \"source_1\": {\n            \"title\": \"Promising study on CBDa and surgery recovery\",\n            \"link\": \"https://pubmed.com/aeth38490djsdhfsd?sduhiuoh23\"\n          },\n          \"source_2\": {\n            \"title\": \"Famous athlete claims CBD cream helped them recover faster\",\n            \"link\": \"https://www.google.com/sdiuhfnweuo348234?234hsdf\"\n          }\n        }\n      },\n      \"topic_2\": {\n        \"request\": \"Research if CBD is effective for reducing anxiety in teens.\",\n        \"position\": \"There is promising evidence that CBD may help reduce anxiety in teens, but clinical research is still limited. Small-scale studies and anecdotal evidence suggest CBD can lower stress and improve emotional regulation, but large, long-term studies are needed for conclusive results.\",\n        \"position_reasoning\": \"A 2023 study in the Journal of Adolescent Mental Health found that CBD reduced reported anxiety symptoms in teenagers by 30% compared to a placebo. However, the study had a small sample size, and experts recommend caution due to a lack of FDA-approved CBD formulations for adolescent anxiety treatment. Additional studies, particularly long-term trials, are necessary to confirm efficacy and safety.\",\n        \"position_sources\": {\n          \"source_1\": {\n            \"title\": \"CBD and Adolescent Anxiety: A 2023 Study\",\n            \"link\": \"https://jamanetwork.com/journals/adolescenthealth/cbd-study-2023\"\n          },\n          \"source_2\": {\n            \"title\": \"Psychiatrist weighs in on CBD use for teen anxiety\",\n            \"link\": \"https://www.medicalnewstoday.com/articles/psychiatrist-cbd-anxiety-teens\"\n          }\n        }\n      }\n    }\n  }\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        60,
+        -240
+      ],
+      "id": "d7b82f46-efce-4970-8079-fc425437301b",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an advanced research assistant. Your task is to analyze this {{ $json.requestType }} request: {{ $json.request }} request by following these steps:\n\nStep 1: Determine the best search phrases for the objective.\nStep 2: Retrieve the top 1 to 3 relevant searches and summaries.\nStep 3: Analyze the data and write a position based on the sources.\nStep 4: Review the response to ensure it meets the objectives and includes all necessary information.\nStep 5: Return the response in the following example format:\n{\n  \"researchRequest\": {\n    \"status\": \"success\",\n    \"summary\": \"The research agent analyzed two topics related to CBD. Below are the findings.\",\n    \"topics\": {\n      \"topic_1\": {\n        \"request\": \"Research if CBDa is effective for post-surgery recovery.\",\n        \"position\": \"Yes, CBDa has been shown to reduce swelling and inflammation by 24% over using typical NSAIDs. This demonstrates its applicability for reducing swelling in recovery from tissue and muscle damage, whether caused by surgery or injury.\",\n        \"position_reasoning\": \"After reviewing the study in PubMed regarding CBDa used post-surgery, it appears to be a well-organized and well-run study from a credible source with a decent sample size. While a larger sample size would provide better data, the current results indicate a significant effect compared to both placebo groups and those prescribed NSAIDs like ibuprofen.\",\n        \"position_sources\": {\n          \"source_1\": {\n            \"title\": \"Promising study on CBDa and surgery recovery\",\n            \"link\": \"https://pubmed.com/aeth38490djsdhfsd?sduhiuoh23\"\n          },\n          \"source_2\": {\n            \"title\": \"Famous athlete claims CBD cream helped them recover faster\",\n            \"link\": \"https://www.google.com/sdiuhfnweuo348234?234hsdf\"\n          }\n        }\n      },\n      \"topic_2\": {\n        \"request\": \"Research if CBD is effective for reducing anxiety in teens.\",\n        \"position\": \"There is promising evidence that CBD may help reduce anxiety in teens, but clinical research is still limited. Small-scale studies and anecdotal evidence suggest CBD can lower stress and improve emotional regulation, but large, long-term studies are needed for conclusive results.\",\n        \"position_reasoning\": \"A 2023 study in the Journal of Adolescent Mental Health found that CBD reduced reported anxiety symptoms in teenagers by 30% compared to a placebo. However, the study had a small sample size, and experts recommend caution due to a lack of FDA-approved CBD formulations for adolescent anxiety treatment. Additional studies, particularly long-term trials, are necessary to confirm efficacy and safety.\",\n        \"position_sources\": {\n          \"source_1\": {\n            \"title\": \"CBD and Adolescent Anxiety: A 2023 Study\",\n            \"link\": \"https://jamanetwork.com/journals/adolescenthealth/cbd-study-2023\"\n          },\n          \"source_2\": {\n            \"title\": \"Psychiatrist weighs in on CBD use for teen anxiety\",\n            \"link\": \"https://www.medicalnewstoday.com/articles/psychiatrist-cbd-anxiety-teens\"\n          }\n        }\n      }\n    }\n  }\n}\n\n{previous_steps}\n{current_step}\n{agent_scratchpad}\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -320,
+        -360
+      ],
+      "id": "1410c091-baaf-45e2-b9f4-2207664ec2da",
+      "name": "Research Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a simple web search assistant for information. \nPlease process this {{ $json.requestType }} request: {{ $json.request }} and make sure to return the output format in a json format that is helpful. Like this search example if multiple items are required:\n{\n  \"searchResults\": {\n    \"title\": \"Top 2 articles about trends in health and wellness\",\n    \"summary\": \"Here are two sources that match your request for trends in health and wellness.\",\n    \"item_1\": {\n      \"title\": \"2025 Health and Fitness Trends for Seniors - Newsweek\",\n      \"summary\": \"Newsweek cites that the top trends in health and wellness for seniors include more widespread adoption of wearable technologies like WHOOP, Apple Watch, and other smart health monitoring devices. Experts predict an increasing focus on personalized nutrition and strength training for longevity.\",\n      \"link\": \"https://newsweek.com/news/2025/senior-wellness-trends/\"\n    },\n    \"item_2\": {\n      \"title\": \"The Future of Wellness: Top Trends for 2025 - Healthline\",\n      \"summary\": \"Healthline explores the biggest wellness trends of 2025, highlighting the rise of AI-powered health coaches, biohacking for better sleep and stress management, and the increasing integration of mental health into traditional healthcare. With a focus on longevity and holistic wellness, these trends are shaping the future of personal health.\",\n      \"link\": \"https://www.healthline.com/health/wellness-trends-2025\"\n    }\n  }\n}\n{previous_steps}\n{current_step}\n{agent_scratchpad}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -320,
+        220
+      ],
+      "id": "eb994cdc-a914-4d57-af33-265cfa3b4e35",
+      "name": "Web Search Agent",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{ \"sessionId\": \"sessionID from the chat origin.\",\n  \"requestType\": \"web search\",\n  \"request\": \"top 5 search trends for intermittent fasting\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1040,
+        -20
+      ],
+      "id": "398bdd32-35f8-434d-acf2-3638467a3bf9",
+      "name": "Search-Research Request",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.requestType }}",
+                    "rightValue": "research",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "research"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "7acd2ea2-4be2-4646-a158-a666c3eef41b",
+                    "leftValue": "={{ $json.requestType }}",
+                    "rightValue": "search",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "web search"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -860,
+        -20
+      ],
+      "id": "58ee96ef-9fb7-4b24-8f46-6efe63ee614b",
+      "name": "Agent Router"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {
+          "responseFormat": "text"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -540,
+        -60
+      ],
+      "id": "0ad9f6bd-799a-4f97-86cb-e7af219d0f72",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "Q2jlquF0LqBKxnFE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "gl": "us",
+          "google_domain": "google.com",
+          "hl": "en"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -100
+      ],
+      "id": "036a069b-d427-4fad-89a5-8da70d1c48b8",
+      "name": "SerpAPI",
+      "credentials": {
+        "serpApi": {
+          "id": "0He8GsLBBqdokfYX",
+          "name": "SerpAPI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        620,
+        -40
+      ],
+      "id": "5064cf2c-ba4a-4b69-9ccd-dcc7bb7dc926",
+      "name": "Supabase Vector Store",
+      "alwaysOutputData": false,
+      "credentials": {
+        "supabaseApi": {
+          "id": "OZ0MQwkA1tbJErzq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1536,
+          "batchSize": 512
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        460,
+        260
+      ],
+      "id": "a6b404fb-e7ee-417d-bd9b-504f4e69b41f",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "Q2jlquF0LqBKxnFE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.markdown }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {}
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        620,
+        260
+      ],
+      "id": "3d9a2745-8fae-458e-be55-67897d640a11",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -20,
+        60
+      ],
+      "id": "d623e4bd-70f5-45c4-9b77-18cce02f3638",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "Q2jlquF0LqBKxnFE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "previous_research_repository",
+        "toolDescription": "This should be the place to check for previous research and positions that could be relevant to the users request, before needing to do new research. ",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -80
+      ],
+      "id": "331d452e-8111-463f-ad4e-4c9c913502d7",
+      "name": "Previous Research Lookup",
+      "credentials": {
+        "supabaseApi": {
+          "id": "OZ0MQwkA1tbJErzq",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -280,
+        -140
+      ],
+      "id": "4a687a9b-c2ec-46a3-bc28-cb010c3572cf",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "NBMDtA9MZIlpXyFD",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableName": "n8n_chat2_histories"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -260,
+        440
+      ],
+      "id": "699095a5-44a7-4220-8585-e57335e2bf38",
+      "name": "Postgres Chat Memory1",
+      "credentials": {
+        "postgres": {
+          "id": "NBMDtA9MZIlpXyFD",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "instructions": "Transform the JSON into markdown text that can be saved as the content for a vector document store.",
+        "codeGeneratedForPrompt": "Transform the JSON into markdown text that can be saved as the content for a vector document store.",
+        "jsCode": "const items = $input.all().map((item) => item.json);\n\nconst markdownText = items.map((item) => {\n  let markdown = `# ${item.output.researchRequest.status}\\n\\n${item.output.researchRequest.summary}\\n\\n`;\n\n  Object.values(item.output.researchRequest.topics).forEach((topic) => {\n    markdown += `## ${topic.request}\\n\\n${topic.position}\\n\\n${topic.position_reasoning}\\n\\n`;\n\n    Object.values(topic.position_sources).forEach((source) => {\n      markdown += `### [${source.title}](${source.link})\\n\\n`;\n    });\n  });\n\n  return { markdown };\n});\n\nreturn markdownText;\n"
+      },
+      "type": "n8n-nodes-base.aiTransform",
+      "typeVersion": 1,
+      "position": [
+        400,
+        -40
+      ],
+      "id": "857c0452-d4f7-43ce-b69b-478ed30dd4cd",
+      "name": "AI Transform"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        680,
+        460
+      ],
+      "id": "24efcde5-54e2-474a-8fab-4be0162147ba",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "options": {
+          "gl": "us",
+          "google_domain": "google.com",
+          "hl": "en"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        -120,
+        460
+      ],
+      "id": "1f2bc732-3940-4df5-9814-3c52fdcd8857",
+      "name": "SerpAPI1",
+      "credentials": {
+        "serpApi": {
+          "id": "0He8GsLBBqdokfYX",
+          "name": "SerpAPI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -400,
+        440
+      ],
+      "id": "c42e42f4-de55-4011-b6d8-26708012a7c2",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Q2jlquF0LqBKxnFE",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Web Search Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search-Research Request": {
+      "main": [
+        [
+          {
+            "node": "Agent Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Router": {
+      "main": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Web Search Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpAPI": {
+      "ai_tool": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "ai_tool": [
+        []
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Research Agent": {
+      "main": [
+        [
+          {
+            "node": "AI Transform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Web Search Agent": {
+      "main": [
+        [
+          {
+            "node": "AI Transform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Previous Research Lookup",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Previous Research Lookup": {
+      "ai_tool": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Web Search Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Transform": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpAPI1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Web Search Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Web Search Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bd2a872c-0e1d-40a1-a0df-f4c1d60fa508",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3d76cbc62e1c6c781f9dda1f30f54dd1c4ff3fa89a8139a54da6bb89f2c37ab6"
+  },
+  "id": "Hsk0MFCNqp6MlmTr",
+  "tags": []
+}

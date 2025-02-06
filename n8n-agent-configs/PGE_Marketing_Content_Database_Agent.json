@@ -1,0 +1,724 @@
+{
+  "name": "PGE Marketing Content Database Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.requestType }}\n{{ $json.request }}\n{{ $json.content }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are the librarian of the Polar Gold Marketing Content App. This app is where information about Polar Gold Brand, audiences, avatars, article ideas, articles, social media, campaigns, editor rules, and product reviews live. Your job is to handle requests to retrieve or create or update records. You have the following tools at your disposal:\n\n$schema_lookup - This tool is to look up all the tables and information on the schema in case you get a request and there is a typo you can find the relevant info that best matches. \n\n$table_lookup - every table_name will have a lookup tool to get information. \n\n$table_update - every table will have a update tool to create or update records. \n\nThe $tables in the app are - Brand Identities, Audiences, Avatars, Content Pillars, Article Ideas, Articles, Social Media, Products, Campaigns, Editor Rules, Product Reviews\n\n{previous_step}\n{current_step}\n{agent_scratchpad}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -240,
+        -180
+      ],
+      "id": "764ae3f7-33e7-4ea6-8629-5bbf6aaf8129",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -400,
+        40
+      ],
+      "id": "7b8089d6-2856-4854-a67b-259d2309eed2",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Q2jlquF0LqBKxnFE",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool to understand a Brand Identity, like the Polar Gold Extracts Brand, and can information about the brand for context in writing anything. ",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appNRPMSY0XKieJxR",
+          "mode": "list",
+          "cachedResultName": "PGE Marketing Content App",
+          "cachedResultUrl": "https://airtable.com/appNRPMSY0XKieJxR"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblRGm62K1HTuCwNG",
+          "mode": "list",
+          "cachedResultName": "Brand Identities",
+          "cachedResultUrl": "https://airtable.com/appNRPMSY0XKieJxR/tblRGm62K1HTuCwNG"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        220,
+        40
+      ],
+      "id": "0dc091d3-ea54-489b-96ea-07a9d987d1bb",
+      "name": "Brand Identity Lookup Tool",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "RXmNNc7Xuo1AJHDB",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Look up Avatars and related fields to the Avatar for context in writing content. ",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appNRPMSY0XKieJxR",
+          "mode": "list",
+          "cachedResultName": "PGE Marketing Content App",
+          "cachedResultUrl": "https://airtable.com/appNRPMSY0XKieJxR"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblKxFONAeTwUmceD",
+          "mode": "list",
+          "cachedResultName": "Avatars",
+          "cachedResultUrl": "https://airtable.com/appNRPMSY0XKieJxR/tblKxFONAeTwUmceD"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        420,
+        40
+      ],
+      "id": "cc3e60d4-85f9-4052-9ebf-9c5661d6deef",
+      "name": "Avatar Lookup Tool",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "RXmNNc7Xuo1AJHDB",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Create and Save the Article Ideas to the PGE Marketing App database. Needs a Headline, Description, and Pillar Content Category Link to the Pillar Content table in Airtable. ",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appNRPMSY0XKieJxR",
+          "mode": "list",
+          "cachedResultName": "PGE Marketing Content App",
+          "cachedResultUrl": "https://airtable.com/appNRPMSY0XKieJxR"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblr9u9P503rS3MKp",
+          "mode": "list",
+          "cachedResultName": "Article Ideas",
+          "cachedResultUrl": "https://airtable.com/appNRPMSY0XKieJxR/tblr9u9P503rS3MKp"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Idea Headline": "= {{ $fromAI('ideaHeadline', 'The generated article headline to grab the readers attention') }}",
+            "Idea Description": "={{ $fromAI('ideaDescription', 'The description of what the article content will be including the article goal, it\\'s summary') }}",
+            "Related Pillar Content": "={{ [$fromAI('pillarContentCategory', 'Need to take the looked up pillar content record ID, sent as an array, not a string')] }}",
+            "Avatars": "={{ [$fromAI('avatarLink', 'the id of the Avatar this article is being written for')] }}",
+            "Sources": "={{ $fromAI('ideaSources', 'A Summary of the source with link. THe Position if it is research. Can be formatted in RTF') }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "Idea Headline",
+              "displayName": "Idea Headline",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Idea Description",
+              "displayName": "Idea Description",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Related Pillar Content",
+              "displayName": "Related Pillar Content",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Pillar Content Category",
+              "displayName": "Pillar Content Category",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Number of Related Articles",
+              "displayName": "Number of Related Articles",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Articles",
+              "displayName": "Articles",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Related Articles Headlines",
+              "displayName": "Related Articles Headlines",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Sources",
+              "displayName": "Sources",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Avatars",
+              "displayName": "Avatars",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        960,
+        40
+      ],
+      "id": "41eec228-b8d1-4855-b480-874c177bf7d1",
+      "name": "Create Article Idea",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "RXmNNc7Xuo1AJHDB",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Lookup Pillar Content Categories to get information like the record ID of the Pillar category, so that it can be used when submitting an Article Idea to link the Article Idea to the correct Pillar Content category.",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appNRPMSY0XKieJxR",
+          "mode": "list",
+          "cachedResultName": "PGE Marketing Content App",
+          "cachedResultUrl": "https://airtable.com/appNRPMSY0XKieJxR"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl0UhGl461hgTGx5",
+          "mode": "list",
+          "cachedResultName": "Pillar Contents",
+          "cachedResultUrl": "https://airtable.com/appNRPMSY0XKieJxR/tbl0UhGl461hgTGx5"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        620,
+        40
+      ],
+      "id": "158b275c-c2c0-4fe8-a47e-b6523facf59b",
+      "name": "Pillar Content Lookup",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "RXmNNc7Xuo1AJHDB",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{ \"requestType\": \"lookup or edit\",\n  \"request\": \"what information needs to be looked up or edited\",\n  \"content\": \"actual content that needs to be created or inserted\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -540,
+        -240
+      ],
+      "id": "1b96384c-8696-466e-b1e6-9993e4f69285",
+      "name": "Workflow Input Trigger"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Lookup Article Ideas from the PGE Marketing Air Table and their status and any other information",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appNRPMSY0XKieJxR",
+          "mode": "list",
+          "cachedResultName": "PGE Marketing Content App",
+          "cachedResultUrl": "https://airtable.com/appNRPMSY0XKieJxR"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblr9u9P503rS3MKp",
+          "mode": "list",
+          "cachedResultName": "Article Ideas",
+          "cachedResultUrl": "https://airtable.com/appNRPMSY0XKieJxR/tblr9u9P503rS3MKp"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        780,
+        40
+      ],
+      "id": "156f0186-732c-4b23-81de-3c3cc2694f16",
+      "name": "Lookup Article Ideas",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "RXmNNc7Xuo1AJHDB",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Ability to create and edit Articles (aka blogs) This is where the article outline is written, the body, the sources, etc.. ",
+        "operation": "upsert",
+        "base": {
+          "__rl": true,
+          "value": "appNRPMSY0XKieJxR",
+          "mode": "list",
+          "cachedResultName": "PGE Marketing Content App",
+          "cachedResultUrl": "https://airtable.com/appNRPMSY0XKieJxR"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblxukxj36B3c2ql9",
+          "mode": "list",
+          "cachedResultName": "Articles",
+          "cachedResultUrl": "https://airtable.com/appNRPMSY0XKieJxR/tblxukxj36B3c2ql9"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Article Headline",
+              "displayName": "Article Headline",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Article Summary",
+              "displayName": "Article Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Article Outline",
+              "displayName": "Article Outline",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Article Body",
+              "displayName": "Article Body",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Practical Tips",
+              "displayName": "Practical Tips",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Article Sources",
+              "displayName": "Article Sources",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Related Article Idea",
+              "displayName": "Related Article Idea",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Word Count",
+              "displayName": "Word Count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Article Idea Count",
+              "displayName": "Article Idea Count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Promotion Content Count",
+              "displayName": "Promotion Content Count",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Promotion Contents",
+              "displayName": "Promotion Contents",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Avatars",
+              "displayName": "Avatars",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Campaign",
+              "displayName": "Campaign",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        1220,
+        40
+      ],
+      "id": "e75a34ff-cbb5-4802-afc2-d81336314fac",
+      "name": "Create and Edit Articles",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "RXmNNc7Xuo1AJHDB",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Get Schema to understand the PGE Marketing Content App Tables.",
+        "resource": "base",
+        "operation": "getSchema",
+        "base": {
+          "__rl": true,
+          "value": "appNRPMSY0XKieJxR",
+          "mode": "list",
+          "cachedResultName": "PGE Marketing Content App",
+          "cachedResultUrl": "https://airtable.com/appNRPMSY0XKieJxR"
+        }
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        20,
+        40
+      ],
+      "id": "38ec3235-987d-42d2-95e7-4ffbd09798f9",
+      "name": "Schema_Lookup",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "RXmNNc7Xuo1AJHDB",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"agentMessage\": \"Here's the information I found that \\\"Needs Outline\\\"\",\n\t\"content\": [\"content item 1 make sure to escape out special characters\", \"content item 2\", \"make sure to escape out special character\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1420,
+        40
+      ],
+      "id": "2a9bd02e-73be-4c1c-a177-4efbf64ecc5b",
+      "name": "Structured Output Parser"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Brand Identity Lookup Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Avatar Lookup Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Article Idea": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pillar Content Lookup": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Input Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lookup Article Ideas": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create and Edit Articles": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schema_Lookup": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a1cd526f-ad9f-46de-920e-6b4fe127a1a0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3d76cbc62e1c6c781f9dda1f30f54dd1c4ff3fa89a8139a54da6bb89f2c37ab6"
+  },
+  "id": "AEbkW6vYvxQ5fiIg",
+  "tags": []
+}

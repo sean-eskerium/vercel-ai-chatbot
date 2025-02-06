@@ -12,8 +12,9 @@ export async function GET() {
     
     return NextResponse.json({ 
       success: true, 
-      message: 'N8n webhook test completed',
-      response 
+      agentMessage: response.output.agentMessage,
+      content: response.output.content,
+      metadata: response.output.metadata
     });
   } catch (error: any) {
     console.error('Test endpoint error:', error);

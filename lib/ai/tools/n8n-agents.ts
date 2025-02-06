@@ -7,16 +7,29 @@ interface N8nWriterAgentProps {
   chatId: string;
 }
 
-// Define the expected response format from the n8n webhook
+/**
+ * Expected response format from the n8n webhook.
+ * Example response:
+ * {
+ *   "agentMessage": "This is the main content to display",
+ *   "content": "This is the main content to display",
+ *   "metadata": {
+ *     "status": "completed",
+ *     "count": 5,
+ *     "tags": ["article", "draft"],
+ *     "content_format": "text"
+ *   }
+ * }
+ */
 interface N8nWebhookResponse {
-  content: string;           // The main text content to be displayed in the chat
-  type?: 'text' | 'task_list' | 'article_outline';  // Optional type to indicate special formatting
-  metadata?: {              // Optional metadata for additional context
-    status?: string;
-    count?: number;
-    tags?: string[];
-    [key: string]: any;    // Allow for additional metadata fields
-  };
+  agentMessage: string;
+  content: string;
+  metadata: {
+    status: string;
+    count: number;
+    tags: string[];
+    content_format: string;
+  }
 }
 
 export const createN8nWriterAgent = ({ session, chatId }: N8nWriterAgentProps) => {
@@ -44,22 +57,11 @@ export const createN8nWriterAgent = ({ session, chatId }: N8nWriterAgentProps) =
 
         console.log('Sending payload to n8n:', payload);
         const response = await callN8nAgent(payload);
-        
-        if (response.error) {
-          console.error('n8nWriterAgent error:', response.message);
-          return `I encountered an error while processing your request: ${response.message}`;
-        }
 
-        // Validate and format the response
-        if (typeof response === 'string') {
-          // Handle simple string responses
-          return response;
-        } else if (typeof response.content === 'string') {
-          // Handle structured responses
-          if (response.type === 'task_list' || response.type === 'article_outline') {
-            // Format special types appropriately
-            return response.content;
-          }
+        // Return the agent message if available, otherwise return the content
+        if (response.agentMessage) {
+          return response.agentMessage;
+        } else if (response.content) {
           return response.content;
         } else {
           console.error('Invalid response format from n8n webhook:', response);

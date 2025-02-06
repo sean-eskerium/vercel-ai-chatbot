@@ -1,4 +1,15 @@
-export async function callN8nAgent(payload: object): Promise<any> {
+interface N8nWebhookResponse {
+  agentMessage: string;
+  content: string;
+  metadata: {
+    status: string;
+    count: number;
+    tags: string[];
+    content_format: string;
+  }
+}
+
+export async function callN8nAgent(payload: object): Promise<N8nWebhookResponse> {
   const webhookUrl = process.env.N8N_WEBHOOK_URL;
   if (!webhookUrl) {
     console.error('N8N_WEBHOOK_URL environment variable is not defined');
@@ -33,14 +44,17 @@ export async function callN8nAgent(payload: object): Promise<any> {
         body: errorText,
         url: webhookUrl
       });
-      return {
-        error: true,
-        message: `n8n webhook failed: ${response.status} ${response.statusText} - ${errorText}`
-      };
+      throw new Error(`n8n webhook failed: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
-    const data = await response.json();
+    const data: N8nWebhookResponse = await response.json();
     console.log('n8n webhook response data:', JSON.stringify(data, null, 2));
+    
+    // Validate the response structure
+    if (!data.content || typeof data.content !== 'string' || !data.metadata) {
+      throw new Error('Invalid response structure from n8n webhook');
+    }
+    
     return data;
   } catch (error: any) {
     console.error('Error calling n8n webhook:', {
@@ -48,9 +62,6 @@ export async function callN8nAgent(payload: object): Promise<any> {
       stack: error.stack,
       url: webhookUrl
     });
-    return {
-      error: true,
-      message: error.message || 'Failed to call n8n webhook'
-    };
+    throw error;
   }
 } 
