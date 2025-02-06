@@ -25,12 +25,13 @@ import { createDocument } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
+import { createN8nWriterAgent } from '@/lib/ai/tools/n8n-agents';
 
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
   const {
-    id,
+    id: chatId,
     messages,
     selectedChatModel,
   }: { id: string; messages: Array<Message>; selectedChatModel: string } =
@@ -48,15 +49,15 @@ export async function POST(request: Request) {
     return new Response('No user message found', { status: 400 });
   }
 
-  const chat = await getChatById({ id });
+  const chat = await getChatById({ id: chatId });
 
   if (!chat) {
     const title = await generateTitleFromUserMessage({ message: userMessage });
-    await saveChat({ id, userId: session.user.id, title });
+    await saveChat({ id: chatId, userId: session.user.id, title });
   }
 
   await saveMessages({
-    messages: [{ ...userMessage, createdAt: new Date(), chatId: id }],
+    messages: [{ ...userMessage, createdAt: new Date(), chatId }],
   });
 
   return createDataStreamResponse({
@@ -74,6 +75,7 @@ export async function POST(request: Request) {
                 'createDocument',
                 'updateDocument',
                 'requestSuggestions',
+                'n8nWriterAgent',
               ],
         experimental_transform: smoothStream({ chunking: 'word' }),
         experimental_generateMessageId: generateUUID,
@@ -84,6 +86,10 @@ export async function POST(request: Request) {
           requestSuggestions: requestSuggestions({
             session,
             dataStream,
+          }),
+          n8nWriterAgent: createN8nWriterAgent({ 
+            session,
+            chatId
           }),
         },
         onFinish: async ({ response, reasoning }) => {
@@ -98,7 +104,7 @@ export async function POST(request: Request) {
                 messages: sanitizedResponseMessages.map((message) => {
                   return {
                     id: message.id,
-                    chatId: id,
+                    chatId,
                     role: message.role,
                     content: message.content,
                     createdAt: new Date(),

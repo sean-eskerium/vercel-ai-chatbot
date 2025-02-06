@@ -1,17 +1,25 @@
 import { NextResponse } from 'next/server';
-import { n8nTool } from '@/lib/n8nTool';
+import { callN8nAgent } from '@/lib/n8nIntegration';
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    // Sample test data
-    const sessionId = 'test-session';
-    const userId = 'test-user';
-    const message = 'Test message for n8n automation';
+    const testPayload = {
+      message: "Test message from API endpoint"
+    };
 
-    const result = await n8nTool.execute(sessionId, userId, message);
-
-    return NextResponse.json({ result });
+    console.log('Testing n8n webhook connection...');
+    const response = await callN8nAgent(testPayload);
+    
+    return NextResponse.json({ 
+      success: true, 
+      message: 'N8n webhook test completed',
+      response 
+    });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Unknown error' }, { status: 500 });
+    console.error('Test endpoint error:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: error.message 
+    }, { status: 500 });
   }
 } 
